@@ -119,3 +119,35 @@ TINYMCE_DEFAULT_CONFIG = {
     'width': 600,
     'height': 400,
 }
+
+# 发送邮件配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.aliyun.com'
+EMAIL_PORT = 25
+# 发送邮件的邮箱
+EMAIL_HOST_USER = '你的邮箱'
+# 在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = '邮箱的密码'
+# 收件人看到的发件人
+EMAIL_FROM = 'dailyfresh<jdy879526487@aliyun.com>'
+
+
+
+# 设置Django框架的缓存
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 设置django缓存的数据保存在redis数据库中
+        "LOCATION": "redis://127.0.0.1:6379/5",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# Django的session存储设置
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# 设置session信息存储在CACHES配置项default对应的redis中
+SESSION_CACHE_ALIAS = "default"
+
+LOGIN_URL = '/user/login'

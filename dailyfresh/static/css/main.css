@@ -18,20 +18,20 @@ html,body{height:100%}
 }
 
 .login_info{
-	display:none;
+	display:inline-block;
 }
 
 .login_info em{color:#ff8800}
 
-.login_btn a,.user_link a{
+.login_btn a, .login_info a, .user_link a,.site_con a{
 	color:#666;
 }
 
-.login_btn a:hover,.user_link a:hover{
+.login_btn a:hover,.login_info a:hover,.user_link a:hover,.site_con a:hover{
 	color:#ff8800;
 }
 
-.login_btn span,.user_link span{
+.login_btn span,.login_info span,.user_link span,.site_con span{
 	color:#cecece;
 	margin:0 10px;
 }
