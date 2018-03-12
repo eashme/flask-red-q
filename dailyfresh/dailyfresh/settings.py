@@ -125,9 +125,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.aliyun.com'
 EMAIL_PORT = 25
 # 发送邮件的邮箱
-EMAIL_HOST_USER = '你的邮箱'
+EMAIL_HOST_USER = 'jdy879526487@aliyun.com'
 # 在邮箱中设置的客户端授权密码
-EMAIL_HOST_PASSWORD = '邮箱的密码'
+EMAIL_HOST_PASSWORD = 'ws13429830518'
 # 收件人看到的发件人
 EMAIL_FROM = 'dailyfresh<jdy879526487@aliyun.com>'
 

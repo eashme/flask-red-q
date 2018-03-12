@@ -10,6 +10,8 @@ from django.http import HttpResponse
 from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.decorators import login_required
 from utils.mixin import LoginRequireView,LoginRequireMixin
+from django_redis import get_redis_connection
+from apps.goods.models import GoodsSKU
 import re
 # Create your views here.
 
@@ -146,7 +148,23 @@ class LoginOutView(View):
 # class UserView(LoginRequireView): #     重写as_view方法
 class UserView(LoginRequireMixin, View):  # 多继承(mro继承顺序表)方法
     def get(self,request):
-        return render(request,'user_center_info.html',{'page':'user'})
+        # from redis import StrictRedis         # 导入redis的包
+        # conn = StrictRedis(host='127.0.0.1',port=6397,db=4)  # 和redis数据库建立链接
+        conn = get_redis_connection('default')  # 使用setting文件中的’default‘配置,启动redis数据库
+        user_id = request.user.id
+        history_key = 'history_%d' % user_id
+        history_list =  conn.lrange(history_key,0,4)
+        skus = []
+        # 通过历史记录查询到的id来取得商品SKU对象加入到skus列表
+        for sku_id in history_list:
+            skus.append(GoodsSKU.objects.get(id=sku_id))
+        # 传入context至模板中
+        context = {
+            'page': 'user',
+            'skus': skus
+        }
+
+        return render(request, 'user_center_info.html', context)
 
 # /user/order
 # class UserOrderView(LoginRequireView): #     重写as_view方法
