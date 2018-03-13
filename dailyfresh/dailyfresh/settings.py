@@ -15,6 +15,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# import sys
+# sys.path.append(os.path.join(BASE_DIR,'apps'))  # 将apps目录添加到python的包搜索路径
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -122,6 +124,7 @@ TINYMCE_DEFAULT_CONFIG = {
 
 # 发送邮件配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# 邮件发送服务器
 EMAIL_HOST = 'smtp.aliyun.com'
 EMAIL_PORT = 25
 # 发送邮件的邮箱
@@ -147,7 +150,19 @@ CACHES = {
 
 # Django的session存储设置
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+
 # 设置session信息存储在CACHES配置项default对应的redis中
 SESSION_CACHE_ALIAS = "default"
 
+# 配置login_required 在验证不通过时候跳转的路径
 LOGIN_URL = '/user/login'
+
+# 设置文件上传使用的Storage子类
+DEFAULT_FILE_STORAGE = 'utils.fdfs.storage.FDFStorage'
+
+# Nginx服务器的路径和端口号
+NGINX_URL = 'http://192.168.227.129:8888/'
+
+# 配置FDFS客户端配置文件路径
+FDFS_CLIENT_CONF = 'utils.fdfs.client.conf'
+
