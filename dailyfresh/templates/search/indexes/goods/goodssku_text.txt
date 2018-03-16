@@ -1,0 +1,5 @@
+# 指定生成索引的属性
+{{ object.name }}
+{{ object.desc }}
+{{ object.goods.detail }}
+
