@@ -7,6 +7,7 @@
 {% block page_info %}购物车{% endblock page_info %}
 
 {% block body %}
+    <form action="{% url 'order:place' %}" method="post">
 	<div class="total_count">全部商品<em>{{ totalcount }}</em>件</div>
     {% csrf_token %}
 	<ul class="cart_list_th clearfix">
@@ -20,7 +21,7 @@
 
     {% for sku,count  in skus %}
 	    <ul class="cart_list_td clearfix">
-		<li class="col01"><input type="checkbox" name=""  checked></li>
+		<li class="col01"><input type="checkbox" name="skus_id" value="{{ sku.id }}" checked></li>
 		<li class="col02"><img src="{{ sku.image.url }}"></li>
 		<li class="col03">{{ sku.name }}<br><em>{{ sku.price }}元/{{ sku.unite }}</em></li>
 		<li class="col04">{{ sku.unite }}</li>
@@ -37,13 +38,12 @@
 	</ul>
     {% endfor %}
 	<ul class="settlements">
-
 		<li class="col01"><input type="checkbox" name="" checked=""></li>
 		<li class="col02">全选</li>
 		<li class="col03">合计(不含运费)：<span>¥</span><em>{{ totalamount }}</em><br>共计<b>{{ totalcount }}</b>件商品</li>
-		<li class="col04"><a href="place_order.html">去结算</a></li>
+		<li class="col04"><input type="submit" value="去结算"></li>
 	</ul>
-
+    </form>
 {% endblock body %}
 {% block bottom_load_js %}
     <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
@@ -51,7 +51,57 @@
 		$(function () {
 			var add_btn = $('.num_add .add'),
 			minus_btn = $('.num_add .minus'),
-            csrf = $("input[name='csrfmiddlewaretoken']").val();
+            csrf = $("input[name='csrfmiddlewaretoken']").val(),
+            prev_count = 0;
+
+			// 删除购物车信息
+            $('.cart_list_td .col08').click(function () {
+                var parent = $(this).parents('ul');
+                var sku_id = parent.find('.num_show').attr('sku_id');
+                $.post('{% url 'cart:del_cart' %}',{'sku_id':sku_id,'csrfmiddlewaretoken':csrf}, function (data) {
+                    if(data.res==3){
+                        //　成功
+                        parent.remove();
+                        update_total_data()
+                    }else{
+                        // 失败
+                        alert(data.errmsg)
+                    }
+                })
+            });
+
+			// 输入框获取焦点事件
+            $('.cart_list_td .num_show').focus(function () {
+                prev_count = $(this).val();
+            });
+
+            // 输入框失去焦点事件
+            $('.cart_list_td .num_show').blur(function () {
+                var input_count = parseInt($(this).val()),
+                stock = $(this).attr('sku_stock');
+                if (input_count < 1 || input_count > stock || input_count == prev_count){
+                    $(this).val(prev_count);
+                    return
+                }
+                sku_id = $(this).attr('sku_id');
+                context={
+                    'csrfmiddlewaretoken' : csrf,
+                    'count' : input_count,
+                    'sku_id' : sku_id
+                };
+                $.post('{% url 'cart:update_cart' %}',context,function (data) {
+                    if(data.res == 4){
+                        //　ajax数据请求操作成功
+                        $(this).val(input_count);
+				        update_total_data();
+                    }else{
+                        // 失败了弹出错误信息
+                        alert(data.errmsg);
+                    }
+
+                });
+            });
+
 
 			// 加号点击事件
 			add_btn.click(function () {
@@ -64,19 +114,28 @@
 				if(step > stock){
 					step = stock;
 				}
-				val_input.val(step);
 
-				update_total_data();
                 sku_id = val_input.attr('sku_id');
                 context={
                     'csrfmiddlewaretoken' : csrf,
                     'count' : step,
                     'sku_id' : sku_id,
                 }
-
+                // 如果是边界值的话就不发请求也不用更新数据了
+                if (val_count == stock){
+                    return
+                }
 				$.post('{% url 'cart:update_cart' %}',context,function (data) {
+                    if(data.res == 4){
+                        //　ajax数据请求操作成功
+                        val_input.val(step);
+				        update_total_data();
+                    }else{
+                        // 失败了弹出错误信息
+                        alert(data.errmsg);
+                    }
 
-                })
+                });
 			});
 			// 减号点击事件
 			minus_btn.click(function () {
@@ -97,10 +156,21 @@
                     'count' : step,
                     'sku_id' : sku_id,
                 }
-
+                // 如果是边界值的话就不发请求也不用更新数据了
+                if (val_count == 1){
+                    return
+                }
 				$.post('{% url 'cart:update_cart' %}',context,function (data) {
+                    if(data.res == 4){
+                        //　ajax数据请求操作成功
+                        val_input.val(step);
+				        update_total_data();
+                    }else{
+                        // 失败了弹出错误信息
+                        alert(data.errmsg);
+                    }
 
-                })
+                });
 
 			});
 
@@ -144,7 +214,7 @@
 
             // 更新页面上被选中的商品的总数目和总价格
             update_total_data();
-        })
+        });
 
             // 当商品的checkbox状态发生改变的时候，全选checkbox状态改变
             $('.cart_list_td').find(':checkbox').change(function () {
@@ -162,7 +232,7 @@
 
             // 更新页面上被选中的商品的总数目和总价格
             update_total_data();
-        })
+        });
 
 
 

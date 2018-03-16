@@ -37,6 +37,55 @@ class CartList(LoginRequireMixin,View):
             'totalcount' : totalcount,
         })
 
+# /cart/add
+class AddCart(View):
+    # 添加购物车
+    def post(self,request):
+        if not request.user.is_authenticated():
+            return JsonResponse({'res': 0, 'errmsg': '请先登录去'})
+
+        count = request.POST.get('sku_count')
+        sku_id = request.POST.get('sku_id')
+
+        if not all([count, sku_id]):
+            return JsonResponse({'res': 1, 'errmsg': '数据不完整'})
+
+        try:
+            sku = GoodsSKU.objects.get(id=sku_id)
+        except GoodsSKU.DoesNotExist:
+            return JsonResponse({'res': 2, 'errmsg': '商品不存在'})
+
+        # 校验商品数量count
+        try:
+            count = int(count)
+        except Exception as e:
+            return JsonResponse({'res': 3, 'errmsg': '商品数量必须为有效数字'})
+
+        # 链接redis数据库
+        conn = get_redis_connection('default')
+        # 拼接key值
+        cart_key = 'cart_%d' % request.user.id
+
+        old_count = conn.hget(cart_key, sku_id)
+
+        if old_count:
+            # 如果购物车中已经存在该商品就增加数量
+            old_count = count + int(old_count)
+        else:
+            # 不存在就赋值
+            old_count = count
+
+        print(old_count)
+
+        if old_count > sku.stock:
+            return JsonResponse({'res':4,'errmsg':'库存不足'})
+
+        # 存入redis
+        conn.hset(cart_key, sku_id, old_count)
+
+        goods_count = conn.hlen(cart_key)
+
+        return JsonResponse({'res' :5, 'errmsg': '添加成功','goods_count' : goods_count})
 
 class UpdateCart(View):
     def post(self,request):
@@ -71,3 +120,26 @@ class UpdateCart(View):
 
         return JsonResponse({'res':4,'errmsg':'更新成功'})
 
+class DelCart(View):
+    def post(self,request):
+        if not request.user.is_authenticated():
+            return JsonResponse({'res': 0, 'errmsg': '请先登录去'})
+
+        sku_id = request.POST.get('sku_id')
+
+        if sku_id is None:
+            return JsonResponse({'res': 1, 'errmsg': '数据不完整'})
+
+        try:
+            sku = GoodsSKU.objects.get(id=sku_id)
+        except GoodsSKU.DoesNotExist:
+            return JsonResponse({'res': 2, 'errmsg': '商品不存在'})
+
+        conn = get_redis_connection('default')
+
+        # 拼接key
+        cart_key = 'cart_%d' % request.user.id
+
+        conn.hdel(cart_key, sku_id)
+
+        return JsonResponse({'res': 3, 'errmsg': '删除成功'})

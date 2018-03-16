@@ -34,7 +34,7 @@
 					<span>|</span>
 					<a href="{% url 'user:user' %}">用户中心</a>
 					<span>|</span>
-					<a href="../static/cart.html">我的购物车</a>
+					<a href="{% url 'cart:cart_list' %}">我的购物车</a>
 					<span>|</span>
 					<a href="../static/user_center_order.html">我的订单</a>
 				</div>
@@ -54,7 +54,8 @@
 		    </form>
         </div>
 		<div class="guest_cart fr">
-			<a href="#" class="cart_name fl">我的购物车</a>
+			<a href="{% url 'cart:cart_list' %}" class="cart_name fl">我的购物车</a>
+             <div class="add_jump"></div>
 			<div class="goods_count fl" id="show_count">{{ cart_count }}</div>
 		</div>
 	</div>
@@ -76,6 +77,8 @@
 		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
 		<p>电话：010-****888    京ICP备*******8号</p>
 </div>
+{% block bottom_box %}{% endblock bottom_box %}
+
 {% block bottom_load_js %}{% endblock bottom_load_js %}
 </body>
 </html>

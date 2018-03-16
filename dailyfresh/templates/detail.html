@@ -1,4 +1,5 @@
 {% extends 'base_navbar.html' %}
+{% load static from staticfiles %}
 {% block title %}天天生鲜-商品详情{% endblock title %}
 {% block body_content %}
 	<div class="breadcrumb">
@@ -22,7 +23,7 @@
 			<div class="goods_num clearfix">
 				<div class="num_name fl">数 量：</div>
 				<div class="num_add fl">
-					<input type="text" class="num_show fl" value="1">
+					<input type="text" class="num_show fl" sku_stock="{{ sku.stock }}" value="1">
 					<a href="javascript:;" class="add fr">+</a>
 					<a href="javascript:;" class="minus fr">-</a>	
 				</div> 
@@ -35,8 +36,9 @@
 
 			<div class="operate_btn">
 				<a href="javascript:;" class="buy_btn">立即购买</a>
-				<a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>				
-			</div>
+				<a href="javascript:;" class="add_cart" sku_id="{{ sku.id }}" id="add_cart">加入购物车</a>
+
+            </div>
 		</div>
 	</div>
 
@@ -57,6 +59,7 @@
 		</div>
 
 		<div class="r_wrap fr clearfix">
+            {% csrf_token %}
 			<ul class="detail_tab clearfix">
 				<li class="active">商品介绍</li>
 
@@ -68,8 +71,6 @@
 				        </dl>
                     </li>
                 {% endfor %}
-
-
 			</ul>
 
 			<div class="tab_content">
@@ -83,25 +84,83 @@
 
 {% endblock body_content %}
 {% block bottom_load_js %}
-	<script type="text/javascript" src="js/jquery-1.12.2.js"></script>
+	<script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
 	<script type="text/javascript">
-		var $add_x = $('#add_cart').offset().top;
-		var $add_y = $('#add_cart').offset().left;
+        $(function () {
+            var $add_x = $('#add_cart').offset().top;
+            var $add_y = $('#add_cart').offset().left;
+            var csrf = $("input[name='csrfmiddlewaretoken']").val();
+            var $to_x = $('#show_count').offset().top;
+            var $to_y = $('#show_count').offset().left;
 
-		var $to_x = $('#show_count').offset().top;
-		var $to_y = $('#show_count').offset().left;
 
-		$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
-		$('#add_cart').click(function(){
-			$(".add_jump").stop().animate({
-				'left': $to_y+7,
-				'top': $to_x+7},
-				"fast", function() {
-					$(".add_jump").fadeOut('fast',function(){
-						$('#show_count').html(2);
-					});
+            $('#add_cart').click(function(){
+                //加入购物车点击事件
+                var sku_id = $(this).attr('sku_id');
+                var sku_count = $('.num_show').val();
 
-			});
-		})
+                params = {
+                    'csrfmiddlewaretoken':csrf,
+                    'sku_id' : sku_id,
+                    'sku_count' : sku_count,
+                }
+                $.post('{% url 'cart:add_cart' %}',params,function (data) {
+                    if(data.res == 5){
+                        //请求成功，上动画
+                        $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'});
+                        $(".add_jump").stop().animate({
+                        'left': $to_y+7,
+                        'top': $to_x+7},
+                        "fast", function() {
+                            $(".add_jump").fadeOut('fast',function(){
+                                $('#show_count').html(data.goods_count);
+                            });
+                        });
+                    }else{
+                        //请求失败,弹提示
+                        alert(data.errmsg);
+                    }
+                });
+
+
+            });
+
+            // 加号点击事件
+            $('.num_add .add').click(function () {
+                var count = parseInt($(this).prev().val());
+                var stock = $(this).prev().attr('sku_stock');
+                if (stock > count){
+                    count += 1;
+                }
+                $(this).prev().val(count);
+            })
+            // 减号点击事件
+            $('.num_add .minus').click(function () {
+                var count = parseInt($(this).prevAll('input').val());
+                if (count > 1){
+                    count -= 1;
+                }
+                $(this).prevAll('input').val(count);
+            });
+
+            var prev_count = 0;
+            			// 输入框获取焦点事件
+            $('.num_add .num_show').focus(function () {
+                prev_count = $(this).val();
+            });
+
+            // 输入框失去焦点事件
+            $('.num_add .num_show').blur(function () {
+                var input_count = parseInt($(this).val()),
+                stock = $(this).attr('sku_stock');
+                if (input_count < 1 || input_count > stock || input_count == prev_count){
+                    $(this).val(prev_count);
+                }else{
+                    $(this).val(input_count);
+                }
+            });
+
+        })
+
 	</script>
 	{% endblock bottom_load_js %}
