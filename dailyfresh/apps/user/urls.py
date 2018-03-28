@@ -9,7 +9,7 @@ urlpatterns = [
 
     #  -----用户中心-----
     url(r'^user$',views.UserView.as_view(),name='user'),
-    url(r'^order$', views.UserOrderView.as_view(),name='order'),
+    url(r'^order/(?P<page_no>\d+)$', views.UserOrderView.as_view(),name='order'),
     url(r'^address', views.AddressView.as_view(),name='address'),
     url(r'^defautl_addr$',views.DefaultAddrView.as_view(),name='default_addr')
 ]

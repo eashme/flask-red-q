@@ -8,10 +8,12 @@ from django.conf import settings
 from itsdangerous import SignatureExpired
 from django.http import HttpResponse
 from django.contrib.auth import login,logout,authenticate
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from utils.mixin import LoginRequireView,LoginRequireMixin
 from django_redis import get_redis_connection
 from apps.goods.models import GoodsSKU
+from apps.order.models import OrderGoods,OrderInfo
 import re
 # Create your views here.
 
@@ -169,8 +171,53 @@ class UserView(LoginRequireMixin, View):  # 多继承(mro继承顺序表)方法
 # /user/order
 # class UserOrderView(LoginRequireView): #     重写as_view方法
 class UserOrderView(LoginRequireMixin, View):  # 多继承(mro继承顺序表)方法
-    def get(self,request):
-        return render(request,'user_center_order.html',{'page':'order'})
+    def get(self,request,page_no):
+        """显示用户订单界面"""
+        try:
+            page_no = int(page_no)
+        except Exception:
+            page_no = 1
+
+        # 拿到该用户所有的订单信息
+        orders = OrderInfo.objects.filter(user=request.user)
+
+        for order in orders:
+            # 拿到各个订单中对应的商品,
+            order.order_goods = OrderGoods.objects.filter(order=order)
+            # 实际付款
+            order.total_amount = order.total_price
+            # 小计价格
+            for goods in order.order_goods:
+                goods.goods_price = round(goods.price * goods.count, 2)
+            # 支付状态数字替换文字
+            order.order_status = OrderInfo.ORDER_STATUS[order.order_status]
+
+        # 生成分页对象
+        paginator = Paginator(orders, 2)
+
+        if page_no < 1 or page_no > paginator.num_pages:
+            page_no = 1
+
+        page = paginator.page(page_no)
+
+        # 页码处理
+        # 如果分页之后页码超过5页，最多在页面上只显示5个页码：当前页前2页，当前页，当前页后2页
+        # 1) 分页页码小于5页，显示全部页码
+        if paginator.num_pages < 5:
+            pages = range(1, paginator.num_pages + 1)
+        # 2）当前页属于1-3页，显示1-5页
+        elif page.number < 4:
+            pages = range(1, 6)
+        # 3) 当前页属于后3页，显示后5页
+        elif page.number > paginator.num_pages - 3:
+            pages = range(paginator.num_pages - 4, paginator.num_pages + 1)
+        # 4) 其他请求，显示当前页前2页，当前页，当前页后2页
+        else:
+            pages = range(page.number - 2, page.number + 3)
+
+        if len(page) == 0 : pages = []
+
+        return render(request,'user_center_order.html',{'page':'order','page_set':page,'page_list' : pages})
 
 # /user/address
 # class AddressView(LoginRequireView): #     重写as_view方法
@@ -211,13 +258,12 @@ class AddressView(LoginRequireMixin,View): #  多继承(mro继承顺序表)方�
 
         return redirect(reverse('user:address'))
 
-
 # /defautl_addr
 class DefaultAddrView(LoginRequireMixin,View):
     """设置默认收货地址"""
     def get(self,request):
         addr_id = request.GET.get('addr_id')
-
+        # 将其他的地址设为非默认地址
         other_addr = Address.objects.filter(is_default=True)
         for addr in other_addr:
             addr.is_default = False
@@ -226,6 +272,5 @@ class DefaultAddrView(LoginRequireMixin,View):
         address = Address.objects.get(id=addr_id)
         address.is_default = True
         address.save()
-
 
         return redirect(reverse('user:address'))

@@ -6,7 +6,7 @@ from celery_task.tasks import genarate_static_index_html
 
 class BaseAdminMode(admin.ModelAdmin):
 
-    def save_data_to_cache(self):
+    def update_data_to_cache(self):
         # 获取商品的分类信息
         types = GoodsType.objects.all()
         # 获取首页的轮播商品的信息
@@ -63,6 +63,9 @@ class GoodsTypeAdmin(BaseAdminMode):
 class IndexGoodsBannerAdmin(BaseAdminMode):
     pass
 
+class GoodsSKUAdmin(BaseAdminMode):
+    pass
+
 class IndexPromotionBannerAdmin(BaseAdminMode):
     pass
 
@@ -75,3 +78,4 @@ admin.site.register(GoodsType,GoodsTypeAdmin)
 admin.site.register(IndexGoodsBanner,IndexGoodsBannerAdmin)
 admin.site.register(IndexPromotionBanner,IndexPromotionBannerAdmin)
 admin.site.register(IndexTypeGoodsBanner,IndexTypeGoodsBannerAdmin)
+admin.site.register(GoodsSKU,GoodsSKUAdmin)

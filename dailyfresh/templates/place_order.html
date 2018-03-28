@@ -104,25 +104,26 @@
             };
 
 		    $.post('{% url 'order:commit' %}', params, function (data) {
-                    if (data.res == 4){
-                        location.href = '{% url "goods:index"%}'
+                    if (data.res == 6){
+                        alert(data.errmsg);
+                        localStorage.setItem('order_finish',2);
+
+			$('.popup_con').fadeIn('fast', function() {
+
+				setTimeout(function(){
+					$('.popup_con').fadeOut('fast',function(){
+						window.location.href = '/index';
+					});
+				},3000)
+
+			});
                     }else{
                         //失败
                         alert(data.errmsg);
                     }
             });
 
-			/*localStorage.setItem('order_finish',2);
 
-			$('.popup_con').fadeIn('fast', function() {
-
-				setTimeout(function(){
-					$('.popup_con').fadeOut('fast',function(){
-						window.location.href = 'index.html';
-					});
-				},3000)
-
-			});*/
 		});
 	</script>
 {% endblock bottom_load_js %}

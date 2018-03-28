@@ -19,6 +19,7 @@ class IndexView(View):
         # 取cache值get(key)
         context = cache.get('index_page_data')
         if context is None:
+
             # 获取商品的分类信息
             types = GoodsType.objects.all()
             # 获取首页的轮播商品的信息
@@ -26,7 +27,6 @@ class IndexView(View):
             # 获取首页的促销活动的信息
             goods_promotion = IndexPromotionBanner.objects.all().order_by('index')
 
-            print(goods_banners[0].image.url)
             # 获取首页分类商品的展示信息
             for type in types:
                 # 标题显示的商品信息

@@ -25,9 +25,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'r!*l(!^69n(&fm=d53m7ii40e%)%k9s1__$omky459!!tl77uw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -114,6 +114,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# 收集静态文件根目录
+STATIC_ROOT = '/var/www/dailyfresh/static/'
+
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')] # 配置静态文件夹的物理路径
 
 # The setting of tinymce editor
@@ -168,9 +171,6 @@ NGINX_URL = 'http://192.168.227.128:8888/'
 FDFS_CLIENT_CONF = 'utils.fdfs.client.conf'
 
 
-
-
-
 # 全文检索框架的配置
 HAYSTACK_CONNECTIONS = {
     'default' : {
@@ -184,4 +184,24 @@ HAYSTACK_CONNECTIONS = {
 
 # 当添加,修改,删除数据时，自动生成索引
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+# 阿里pay的SDK需要的参数
+ALIPAY_SETTING = {
+    'appid' : "2016091200491955",  # 应用APPID
+    'app_notify_url' : None,  # 默认回调url
+    'app_private_key_path' : os.path.join(BASE_DIR,'apps/order/app_private_key.pem'),  # 应用私钥文件路径# 支付宝的公钥文件，验证支付宝回传消息使用，不是你自己的公钥,
+    'alipay_public_key_path' : os.path.join(BASE_DIR,'apps/order/app_public_key.pem'),
+    'sign_type' : "RSA2",  # RSA 或者 RSA2
+    'debug' : True  # 默认False，False代表线上环境，True代表沙箱环境
+}
+
+# 支付界面url
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do?'
+# 订单标题
+ALIPAY_TITLE = '测试订单'
+# 订单返回结果url
+ALIPAY_RETURN_URL = "http://192.168.227.128:8000/order/pay"
+
+
+
 
